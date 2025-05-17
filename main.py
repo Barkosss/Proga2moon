@@ -1,20 +1,18 @@
 import telebot
 
 from config import Config
-from handlers.common import handler_common_command
 
 bot = telebot.TeleBot(Config.TOKEN)
-print("Bot is init")
 
 
-@bot.message_handler(func=lambda message: True)
-def get_message(message):
-    text = message.text
-    if text.startswith('/'):
-        arguments = text.split(" ")
-        command = arguments[0][1:].split('@')[0].lower()
-        arguments = [arg for arg in arguments[1:] if len(arg)]
-        handler_common_command(command, arguments)
+def register_command():
+    from handlers import common, admin
+
+    common.register_handlers(bot)
+    admin.register_handlers(bot)
 
 
-bot.infinity_polling()
+if __name__ == "__main__":
+    register_command()
+    print("Bot is init")
+    bot.polling(none_stop=True)

@@ -64,7 +64,7 @@ class DataBase:
         Args:
             user: Объект пользователя для добавления
         """
-        self.data[user.id] = user.to_json()
+        self.data[user.id] = user.to_dict()
         self._write_data(FileData.USERS)
 
     def get_workshop(self, workshop_id: int) -> Workshop:
@@ -95,7 +95,7 @@ class DataBase:
         Args:
             workshop: Объект вокршопа для добавления
         """
-        self.data[workshop.id] = workshop.to_json()
+        self.data[workshop.id] = workshop.to_dict()
         self._write_data(FileData.WORKSHOPS)
 
     @staticmethod

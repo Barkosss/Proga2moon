@@ -4,11 +4,10 @@ import cv2
 import segno
 from qreader import QReader
 
-from services.database import DataBase
+from services.database import DataBase as db
 
 
 class Security:
-    db = DataBase()
     PATH_QRCodes = "../QRCodes/"
 
     @staticmethod
@@ -52,5 +51,5 @@ class Security:
         except Exception:
             return False
 
-        workshop = Security.db.get_workshop(event_id)
+        workshop = db.get_workshop(event_id)
         return workshop.registered_user_ids.get[user_id]

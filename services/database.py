@@ -97,12 +97,13 @@ class DataBase:
         except KeyError as err:
             return Request(status=Status.ERROR, message=f"Couldn't add a new user: {err}")
 
-    def get_workshop(self, workshop_id: int) -> Request:
+    def get_workshop(self, event_id: int, workshop_id: int) -> Request:
         """
         Получить воркшоп по ID
 
         Args:
-            workshop_id: Идентификатор воркщопа для получения
+            :param event_id: Идентификатор мероприятия
+            :param workshop_id: Идентификатор воркщопа для получения
         """
         self._read_data(FileData.WORKSHOPS)
         try:
@@ -110,8 +111,11 @@ class DataBase:
         except KeyError as err:
             return Request(status=Status.ERROR, message=f"Couldn't get the workshop: {err}", value=False)
 
-    def get_workshops(self) -> Request:
-        """Получить список воркшопов"""
+    def get_workshops(self, event_id: int) -> Request:
+        """
+        Получить список воркшопов
+
+        """
         self._read_data(FileData.WORKSHOPS)
         workshops: list[Workshop] = []
 
@@ -138,6 +142,17 @@ class DataBase:
             return Request(status=Status.OK)
         except KeyError as err:
             return Request(status=Status.ERROR, message=f"Couldn't add a new workshop: {err}", value=False)
+
+    def get_event(self, event_id: int) -> Request:
+        pass
+
+    def get_events(self) -> Request:
+        pass
+
+    """
+    def add_event(self, event: Event) -> Request:
+        pass
+    """
 
     @staticmethod
     def create_backup():

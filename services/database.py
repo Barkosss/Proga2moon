@@ -77,6 +77,17 @@ class DataBase:
         self._read_data(FileData.WORKSHOPS)
         return self.data[workshop_id]
 
+    def get_workshops(self) -> list[Workshop]:
+        """Получить список воркшопов"""
+        self._read_data(FileData.WORKSHOPS)
+        workshops: list[Workshop] = []
+
+        for workshop_id in self.data[FileData.WORKSHOPS].keys():
+            workshop: Workshop = self.get_workshop(workshop_id)
+            workshops.append(workshop)
+
+        return workshops
+
     def add_workshop(self, workshop: Workshop):
         """
         Добавить новый воркшоп

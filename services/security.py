@@ -54,7 +54,3 @@ class Security:
         workshop = Security.db.get_workshop(event_id)
         # TODO: Доделать, после реализации WorkShop
         # return workshop.get_registration_users.get[user_id]
-
-
-Security.create_qr()
-Security.check_qr("10", 0)

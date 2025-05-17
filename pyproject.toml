@@ -9,7 +9,8 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "segno (>=1.6.6,<2.0.0)",
-    "pytelegrambotapi (>=4.27.0,<5.0.0)"
+    "pytelegrambotapi (>=4.27.0,<5.0.0)",
+    "pydantic (>=2.11.4,<3.0.0)"
 ]
 
 

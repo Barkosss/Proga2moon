@@ -1,14 +1,24 @@
 from functools import wraps
 
 from main import bot
-from config import Config
+from models.Request import Request, Status
+from services.database import DataBase as db
 
-def admin_only(func):
+
+def admin_only(func, event_id: int):
     """Декоратор для админских команд"""
 
     @wraps(func)
     def wrapper(message, *args, **kwargs):
-        if message.from_user.id in Config.ADMINS:  # Используем список из main.py
+        event_request: Request = db.get_event(event_id)
+
+        if event_request.status != Status.OK:
+            bot.reply_to(message, "❌ | Указанное мероприятие не найдено!")
+            return None
+
+        is_admin: bool = message.from_user.id in event_request.value.admins
+
+        if is_admin:
             return func(message, *args, **kwargs)
         bot.reply_to(message, "❌ | Требуются права администратора!")
         return None
@@ -22,7 +32,8 @@ def user_only(func):
     @wraps(func)
     # TODO: Сделать функцию проверки зарегистрированных пользователей
     def wrapper(message, *args, **kwargs):
-        if bot.user_exists(message.from_user.id):  # Ваша функция проверки
+        user_request: Request = db.get_user(message.from_user.id)
+        if not (user_request.value is None):
             return func(message, *args, **kwargs)
         bot.reply_to(message, "🔐 | Сначала зарегистрируйтесь")
         return None

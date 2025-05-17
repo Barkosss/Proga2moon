@@ -4,7 +4,8 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 
-from models import User, Workshop
+from models.User import User
+from models.Workshop import Workshop
 
 
 class FileData(Enum):
@@ -55,7 +56,7 @@ class DataBase:
             user_id: Идентификатор пользователя для получения
         """
         self._read_data(FileData.USERS)
-        return self.data[user_id]
+        return User.from_dict(self.data[user_id])
 
     def add_user(self, user: User):
         """
@@ -75,7 +76,7 @@ class DataBase:
             workshop_id: Идентификатор воркщопа для получения
         """
         self._read_data(FileData.WORKSHOPS)
-        return self.data[workshop_id]
+        return Workshop.from_dict(self.data[workshop_id])
 
     def get_workshops(self) -> list[Workshop]:
         """Получить список воркшопов"""

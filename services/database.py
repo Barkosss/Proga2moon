@@ -180,3 +180,6 @@ class DataBase:
         """
 
         pass
+
+    def workshop_access(self, user_id, event_id):
+        pass

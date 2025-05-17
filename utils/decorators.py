@@ -3,17 +3,33 @@ from functools import wraps
 from main import bot
 from config import Config
 
-def admin_only(func):
-    """Декоратор для админских команд"""
+from services.database import DataBase as db
 
-    @wraps(func)
-    def wrapper(message, *args, **kwargs):
-        if message.from_user.id in Config.ADMINS:  # Используем список из main.py
+def admin_only_for(event_id: int):
+    """Декоратор: проверка регистрации и прав на конкретный воркшоп"""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(message, *args, **kwargs):
+            user_id = message.from_user.id
+            user = db.get_user(user_id)
+
+            if not user:
+                bot.send_message(
+                    message.chat.id,
+                    "🔒 | Вы не зарегистрированы. Сначала введите /registration_workshop"
+                )
+                return None
+
+            if not db.workshop_access(user_id, event_id):
+                bot.send_message(
+                    message.chat.id,
+                    f"❌ | У вас нет прав администратора на мероприятие #{event_id}"
+                )
+                return None
+
             return func(message, *args, **kwargs)
-        bot.reply_to(message, "❌ | Требуются права администратора!")
-        return None
-
-    return wrapper
+        return wrapper
+    return decorator
 
 
 def user_only(func):

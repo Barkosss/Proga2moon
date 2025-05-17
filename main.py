@@ -28,3 +28,4 @@ if __name__ == "__main__":
     register_command()
     print("Bot is init")
     bot.polling(none_stop=True)
+

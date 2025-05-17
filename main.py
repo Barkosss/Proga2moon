@@ -1,8 +1,9 @@
 import telebot
 
+from config import Config
 from handlers.common import handler_common_command
 
-bot = telebot.TeleBot("7604836846:AAHu90C0unNVMEYd442FsGzTQSRpYGjzxaU")
+bot = telebot.TeleBot(Config.TOKEN)
 print("Bot is init")
 
 

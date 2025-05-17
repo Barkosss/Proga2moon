@@ -8,7 +8,8 @@ class Workshop:
     """
     Сущность мастер-класса (Event):
 
-    - id: UUID или целочисленный счётчик
+    - id: UUID или целочисленный счётчик (ID мастер класса внутри мероприятия)
+    - event_id: UUID или целочисленный счётчик (ID глобального мероприятия)
     - title: название мероприятия
     - description: описание
     - start: время начала (ISO-строка → datetime)
@@ -20,6 +21,7 @@ class Workshop:
     - waiting_user_ids: список ID участников очереди
     """
     id: int
+    event_id: int
     title: str
     description: str
     start: datetime
@@ -34,6 +36,7 @@ class Workshop:
     def from_dict(cls, data: dict) -> "Workshop":
         return cls(
             id=data["id"],
+            event_id=data["event_id"],
             title=data["title"],
             description=data.get("description", ""),
             start=datetime.fromisoformat(data["start"]),

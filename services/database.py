@@ -4,6 +4,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 
+from models.Request import Request, Status
 from models.User import User
 from models.Workshop import Workshop
 
@@ -23,13 +24,31 @@ class FileData(Enum):
 
 
 class DataBase:
+    """
+    Класс для работы с локальной JSON-базой данных, хранящей информацию о пользователях и воркшопах.
+
+    Attributes:
+        data (dict): Временная структура данных, загружаемая из JSON-файлов.
+
+    Methods:
+        _read_data(): Приватный метод для чтения данных из JSON-файла.
+        _write_data(): Приватный метод для записи данных в JSON-файл.
+        has_user(telegram_id): Проверяет наличие пользователя по Telegram ID.
+        get_user(telegram_id): Получает объект пользователя по Telegram ID.
+        add_user(user_data): Добавляет нового пользователя в базу данных.
+        get_workshop(workshop_id): Получает воркшоп по его уникальному идентификатору.
+        get_workshops(): Возвращает список всех доступных воркшопов.
+        add_workshop(workshop_data): Добавляет новый воркшоп в базу данных.
+        create_backup(): Создаёт резервную копию текущих данных.
+        load_backup(): Восстанавливает данные из ранее созданной резервной копии.
+    """
 
     def _read_data(self, filename: FileData) -> None:
         """Прочитать JSON файл"""
         with open(f"../database/{filename.value}", "w") as file:
             self.data: dict = json.load(file)
 
-    def _write_data(self, filename: FileData):
+    def _write_data(self, filename: FileData) -> None:
         """Записать новые данные в JSON файл"""
 
         file_path = Path(f"../database/{filename.value}")
@@ -40,15 +59,18 @@ class DataBase:
         with file_path.open("w") as file:
             json.dump(self.data, file, indent=4)
 
-    def has_user(self, user_id: int) -> bool:
+    def has_user(self, user_id: int) -> Request:
         """
         Проверить наличие пользователя среди зарегистрированных
 
         """
-        self._read_data(FileData.USERS)
-        return self.data[user_id]
+        try:
+            self._read_data(FileData.USERS)
+            return Request(status=Status.OK, value=self.data[user_id])
+        except KeyError as err:
+            return Request(status=Status.ERROR, message="...", value=False)
 
-    def get_user(self, user_id: int) -> User:
+    def get_user(self, user_id: int) -> Request:
         """
         Получить пользователя по Telegram ID
 
@@ -56,48 +78,81 @@ class DataBase:
             user_id: Идентификатор пользователя для получения
         """
         self._read_data(FileData.USERS)
-        return User.from_dict(self.data[user_id])
+        try:
+            return Request(status=Status.OK, value=User.from_dict(self.data[user_id]))
+        except KeyError as err:
+            return Request(status=Status.ERROR, message=f"Couldn't get the user: {err}")
 
-    def add_user(self, user: User):
+    def add_user(self, user: User) -> Request:
         """
         Добавить нового пользователя
 
         Args:
             user: Объект пользователя для добавления
         """
-        self.data[user.id] = user.to_dict()
-        self._write_data(FileData.USERS)
+        try:
+            self.data[user.id] = user.to_dict()
+            self._write_data(FileData.USERS)
+            return Request(status=Status.OK)
+        except KeyError as err:
+            return Request(status=Status.ERROR, message=f"Couldn't add a new user: {err}")
 
-    def get_workshop(self, workshop_id: int) -> Workshop:
+    def get_workshop(self, event_id: int, workshop_id: int) -> Request:
         """
         Получить воркшоп по ID
 
         Args:
-            workshop_id: Идентификатор воркщопа для получения
+            :param event_id: Идентификатор мероприятия
+            :param workshop_id: Идентификатор воркщопа для получения
         """
         self._read_data(FileData.WORKSHOPS)
-        return Workshop.from_dict(self.data[workshop_id])
+        try:
+            return Request(status=Status.OK, value=Workshop.from_dict(self.data[workshop_id]))
+        except KeyError as err:
+            return Request(status=Status.ERROR, message=f"Couldn't get the workshop: {err}", value=False)
 
-    def get_workshops(self) -> list[Workshop]:
-        """Получить список воркшопов"""
+    def get_workshops(self, event_id: int) -> Request:
+        """
+        Получить список воркшопов
+
+        """
         self._read_data(FileData.WORKSHOPS)
         workshops: list[Workshop] = []
 
-        for workshop_id in self.data[FileData.WORKSHOPS].keys():
-            workshop: Workshop = self.get_workshop(workshop_id)
-            workshops.append(workshop)
+        try:
+            for workshop_id in self.data[FileData.WORKSHOPS].keys():
+                workshop_request: Request = self.get_workshop(workshop_id)
+                if workshop_request.status == Status.OK:
+                    workshops.append(workshop_request.value)
 
-        return workshops
+            return Request(status=Status.OK, value=workshops)
+        except KeyError as err:
+            return Request(status=Status.ERROR, message=f"Couldn't get all the workshops: {err}", value=False)
 
-    def add_workshop(self, workshop: Workshop):
+    def add_workshop(self, workshop: Workshop) -> Request:
         """
         Добавить новый воркшоп
 
         Args:
             workshop: Объект вокршопа для добавления
         """
-        self.data[workshop.id] = workshop.to_dict()
-        self._write_data(FileData.WORKSHOPS)
+        try:
+            self.data[workshop.id] = workshop.to_dict()
+            self._write_data(FileData.WORKSHOPS)
+            return Request(status=Status.OK)
+        except KeyError as err:
+            return Request(status=Status.ERROR, message=f"Couldn't add a new workshop: {err}", value=False)
+
+    def get_event(self, event_id: int) -> Request:
+        pass
+
+    def get_events(self) -> Request:
+        pass
+
+    """
+    def add_event(self, event: Event) -> Request:
+        pass
+    """
 
     @staticmethod
     def create_backup():
@@ -107,10 +162,21 @@ class DataBase:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         for file_type in FileData:
-            src = Path(f"../database/{file_type.value}")
-            dst = backup_dir / f"{timestamp}_{file_type.value}"
-            shutil.copy2(src, dst)
+            source = Path(f"../database/{file_type.value}")
+            backup = backup_dir / f"{timestamp}_{file_type.value}"
+            shutil.copy2(source, backup)
 
-    def load_backup(self):
-        """Загрузить резервное копирование"""
+    @staticmethod
+    def load_backup(backup_name: str = None):
+        """
+        Загрузить резервную копию
+
+        Args:
+            backup_name: Имя папки с бэкапом (формат YYYYMMDD_HHMMSS)
+                      Если None, загрузит последний доступный бэкап
+
+        Returns:
+            bool: True если восстановление прошло успешно
+        """
+
         pass

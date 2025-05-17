@@ -1,6 +1,7 @@
+import uuid
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
-from typing import List, Optional, Union
+from typing import List, Optional
 
 
 @dataclass
@@ -8,11 +9,12 @@ class Workshop:
     """
     Сущность мастер-класса (Event):
 
-    - id: UUID или целочисленный счётчик (ID мастер класса внутри мероприятия)
-    - event_id: UUID или целочисленный счётчик (ID глобального мероприятия)
+    - id: UUID
+    - event_id: UUID
     - title: название мероприятия
     - description: описание
-    - start: время начала (ISO-строка → datetime)
+    - location: место проведения (аудитория, комната, зал...)
+    - start: время начала
     - end: время окончания
     - registration_required: нужна ли регистрация
     - limited_capacity: ограничено ли число мест
@@ -20,25 +22,27 @@ class Workshop:
     - registered_user_ids: список ID зареганных участников
     - waiting_user_ids: список ID участников очереди
     """
-    id: int
+    id: str
     event_id: int
     title: str
     description: str
+    location: str
     start: datetime
     end: datetime
     registration_required: bool
     limited_capacity: bool
     capacity: Optional[int] = None
-    registered_user_ids: List[Union[int, str]] = field(default_factory=list)
-    waiting_user_ids: List[Union[int, str]] = field(default_factory=list)
+    registered_user_ids: List[int] = field(default_factory=list)
+    waiting_user_ids: List[int] = field(default_factory=list)
 
     @classmethod
     def from_dict(cls, data: dict) -> "Workshop":
         return cls(
-            id=data["id"],
+            id=str(uuid.uuid4()),
             event_id=data["event_id"],
             title=data["title"],
             description=data.get("description", ""),
+            location=data.get("location", ""),
             start=datetime.fromisoformat(data["start"]),
             end=datetime.fromisoformat(data["end"]),
             registration_required=bool(data.get("registration_required", False)),

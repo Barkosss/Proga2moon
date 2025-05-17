@@ -48,9 +48,9 @@ class Security:
             image = cv2.imread(path)
             decoded_texts: tuple = qreader.detect_and_decode(image=image)
             user_id = int(decoded_texts[0])
+            # TODO: Добавить более понятную ошибку, почему False
         except Exception:
             return False
 
         workshop = Security.db.get_workshop(event_id)
-        # TODO: Доделать, после реализации WorkShop
-        # return workshop.get_registration_users.get[user_id]
+        return workshop.registered_user_ids.get[user_id]

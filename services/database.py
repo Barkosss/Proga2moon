@@ -45,7 +45,7 @@ class DataBase:
 
     def _read_data(self, filename: FileData) -> None:
         """Прочитать JSON файл"""
-        with open(f"../database/{filename.value}", "w") as file:
+        with open(f"../database/{filename.value}", "r") as file:
             self.data: dict = json.load(file)
 
     def _write_data(self, filename: FileData) -> None:

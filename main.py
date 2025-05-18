@@ -2,6 +2,7 @@ import telebot
 from telebot import types
 
 from config import Config
+from services.notifications import start_notification_service
 
 bot = telebot.TeleBot(Config.TOKEN)
 
@@ -26,5 +27,6 @@ def start(message):
 
 if __name__ == "__main__":
     register_command()
+    start_notification_service(bot)
     print("Bot is init")
     bot.polling(none_stop=True)

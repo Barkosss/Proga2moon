@@ -21,6 +21,7 @@ class Workshop:
     - capacity: число мест (если limited_capacity=True)
     - registered_user_ids: список ID зареганных участников
     - waiting_user_ids: список ID участников очереди
+    - is_notified: флаг, который указывает, начался ли мастер-класс => сделали ли уведомления о начале
     """
     id: str
     event_id: int
@@ -31,6 +32,7 @@ class Workshop:
     end: datetime
     registration_required: bool
     limited_capacity: bool
+    is_notified: bool
     capacity: Optional[int] = None
     registered_user_ids: List[int] = field(default_factory=list)
     waiting_user_ids: List[int] = field(default_factory=list)
@@ -45,6 +47,7 @@ class Workshop:
             location=data.get("location", ""),
             start=datetime.fromisoformat(data["start"]),
             end=datetime.fromisoformat(data["end"]),
+            is_notified=data["is_notified"],
             registration_required=bool(data.get("registration_required", False)),
             limited_capacity=bool(data.get("limited_capacity", False)),
             capacity=data.get("capacity"),

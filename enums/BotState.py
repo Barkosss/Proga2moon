@@ -18,3 +18,10 @@ class BotState(StatesGroup):
     # Мастер-классы
     AWAIT_WORKSHOP_TITLE = State()
     AWAIT_WORKSHOP_TIME = State()
+
+    AWAIT_EVENT_TITLE = State()
+    AWAIT_EVENT_DESC = State()
+    AWAIT_EVENT_START = State()
+    AWAIT_EVENT_END = State()
+    AWAIT_EVENT_LOCATION = State()
+    AWAIT_EVENT_CHAT = State()

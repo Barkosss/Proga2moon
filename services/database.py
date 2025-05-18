@@ -21,7 +21,6 @@ class FileData(Enum):
     WORKSHOPS = "workshops.json"
     EVENTS = "event.json"
     QUESTIONS = "questions.json"
-    BASE_DIR = Path(__file__).resolve().parent.parent  # → Proga2moon/
 
 
 # TODO: Подумать и добавить работу с таблицей вопросов
@@ -44,17 +43,18 @@ class DataBase:
         create_backup(): Создаёт резервную копию текущих данных.
         load_backup(): Восстанавливает данные из ранее созданной резервной копии.
     """
+    BASE_DIR = Path(__file__).resolve().parent.parent  # → Proga2moon/
 
     def _read_data(self, filename: FileData) -> None:
         """Прочитать JSON-файл из директории database/"""
-        file_path = self.BASE_DIR / "database" / filename.value
+        file_path = DataBase.BASE_DIR / "database" / filename.value
         with open(file_path, "r", encoding="utf-8") as file:
             self.data = json.load(file)
         print("Загружаю файл:", file_path)
 
     def _write_data(self, filename: FileData) -> None:
         """Записать данные в JSON-файл в директорию database/"""
-        file_path = self.BASE_DIR / "database" / filename.value
+        file_path = DataBase.BASE_DIR / "database" / filename.value
         file_path.parent.mkdir(parents=True, exist_ok=True)
         with open(file_path, "w", encoding="utf-8") as file:
             json.dump(self.data, file, indent=4, ensure_ascii=False)

@@ -12,8 +12,6 @@ def register_command():
     common.register_handlers(bot)
     admin.register_handlers(bot)
 
-
-@bot.message_handler(commands=['start'])
 def start(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
@@ -21,7 +19,18 @@ def start(message):
     btn2 = types.KeyboardButton("Кнопка 2")
 
     markup.row(btn1, btn2)
-    bot.send_message(message.chat.id, "Выберите действие:", reply_markup=markup)
+
+
+@bot.message_handler(commands=["start"])
+def handle_start(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+    btn1 = types.KeyboardButton("Мои мероприятия")
+    btn2 = types.KeyboardButton("Вопросы от участников")
+    btn3 = types.KeyboardButton("Меню")
+    markup.add(btn1, btn2, btn3)
+    bot.send_message(message.chat.id, "Привет, выбери действие:", reply_markup=markup)
+
 
 
 if __name__ == "__main__":

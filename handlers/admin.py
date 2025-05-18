@@ -1,3 +1,9 @@
+import uuid
+from datetime import datetime
+
+from pyexpat.errors import messages
+from telebot.types import Message
+
 from enums.BotState import BotState
 from enums.StatusEnum import Status
 from utils.decorators import admin_only, admin_only_event_callback
@@ -8,7 +14,6 @@ from models.Event import Event
 
 def register_handlers(bot):
     @bot.message_handler(func=lambda msg: msg.text == "Мои мероприятия")
-    @admin_only(event_id=100)
     def show_admin_events(message):
         """
         Обработчик команды "Мои мероприятия" для администраторов.
@@ -45,7 +50,7 @@ def register_handlers(bot):
             events (list[Event]): Список мероприятий, где пользователь админ
             message_id (Optional[int]): ID сообщения, если нужно отредактировать
         """
-
+        print("Обработчик сработал!")
         with bot.retrieve_data(user_id, chat_id) as data:
             index = data.get('admin_event_index', 0)
             event = events[index]
@@ -209,18 +214,87 @@ def register_handlers(bot):
         bot.send_message(chat_id, "✅ Даты обновлены!")
         bot.delete_state(user_id, chat_id)
 
-    @bot.callback_query_handler(func=lambda call: call.data == "event_edit_back")
-    def handle_back_to_event(call):
-        user_id = call.from_user.id
-        events = db.get_admin_events(user_id)
-        with bot.retrieve_data(user_id, call.message.chat.id) as data:
-            index = data.get("admin_event_index", 0)
-
-        show_event_card(call.message.chat.id, user_id, events, message_id=call.message.message_id)
-        bot.answer_callback_query(call.id)
-
     @bot.callback_query_handler(func=lambda call: call.data == "event_create")
     def handle_event_create(call):
         user_id = call.from_user.id
-        bot.send_message(call.message.chat.id, "Введите название нового мероприятия:")
-        bot.set_state(user_id, BotState.AWAIT_NAME, call.message.chat.id)
+        bot.set_state(user_id, BotState.AWAIT_EVENT_TITLE, call.message.chat.id)
+        bot.send_message(call.message.chat.id, "Введите название мероприятия:")
+
+        with bot.retrieve_data(user_id, call.message.chat.id) as data:
+            data["event_data"] = {}
+
+    @bot.message_handler(state=BotState.AWAIT_EVENT_TITLE)
+    def receive_event_title(message):
+        with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
+            data["event_data"]["title"] = message.text
+
+        bot.set_state(message.from_user.id, BotState.AWAIT_EVENT_DESC, message.chat.id)
+        bot.send_message(message.chat.id, "Введите описание мероприятия:")
+
+    @bot.message_handler(state=BotState.AWAIT_EVENT_DESC)
+    def receive_event_desc(message):
+        with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
+            data["event_data"]["description"] = message.text
+
+        bot.set_state(message.from_user.id, BotState.AWAIT_EVENT_START, message.chat.id)
+        bot.send_message(message.chat.id, "Введите дату начала (ДД.ММ.ГГГГ):")
+
+    @bot.message_handler(state=BotState.AWAIT_EVENT_START)
+    def receive_start_date(message):
+        try:
+            start = datetime.strptime(message.text, "%d.%m.%Y")
+        except:
+            bot.send_message(message.chat.id, "❌ Неверный формат. Повторите.")
+            return
+
+        with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
+            data["event_data"]["start"] = start.isoformat()
+
+        bot.set_state(message.from_user.id, BotState.AWAIT_EVENT_END, message.chat.id)
+        bot.send_message(message.chat.id, "Введите дату окончания (ДД.ММ.ГГГГ):")
+
+    @bot.message_handler(state=BotState.AWAIT_EVENT_END)
+    def receive_end_date(message):
+        try:
+            end = datetime.strptime(message.text, "%d.%m.%Y")
+        except:
+            bot.send_message(message.chat.id, "❌ Неверный формат. Повторите.")
+            return
+
+        with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
+            data["event_data"]["end"] = end.isoformat()
+
+        bot.set_state(message.from_user.id, BotState.AWAIT_EVENT_LOCATION, message.chat.id)
+        bot.send_message(message.chat.id, "Введите место проведения:")
+
+    @bot.message_handler(state=BotState.AWAIT_EVENT_LOCATION)
+    def receive_location(message):
+        with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
+            data["event_data"]["location"] = message.text
+
+        bot.set_state(message.from_user.id, BotState.AWAIT_EVENT_CHAT, message.chat.id)
+        bot.send_message(message.chat.id, "Введите ссылку на чат (или - если не нужно):")
+
+    @bot.message_handler(state=BotState.AWAIT_EVENT_CHAT)
+    def receive_chat(message):
+        with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
+            data["event_data"]["chat_link"] = message.text if message.text != "-" else ""
+
+            # Теперь можно создать Event-объект
+            event_id = generate_event_id()  # реализуй как хочешь (UUID или счётчик)
+            event = Event(
+                id=event_id,
+                start=datetime.fromisoformat(data["event_data"]["start"]),
+                end=datetime.fromisoformat(data["event_data"]["end"]),
+                workshop_ids=[],
+                admin_ids=[message.from_user.id],
+                chat_link=data["event_data"]["chat_link"]
+            )
+            db.add_event(event, [])  # без воркшопов пока
+
+        bot.send_message(message.chat.id, "✅ Мероприятие создано!")
+        bot.delete_state(message.from_user.id, message.chat.id)
+
+    def generate_event_id() -> str:
+        return str(uuid.uuid4())
+

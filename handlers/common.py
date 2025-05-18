@@ -11,8 +11,6 @@ def register_handlers(bot):
     """)
 
 
-    @bot.message_handler(content_types=["text"])
-    @user_only
     def handle_unknown(message):
         bot.reply_to(message, "Неправильный ввод!")
 

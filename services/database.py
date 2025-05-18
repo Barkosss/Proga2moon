@@ -43,6 +43,7 @@ class DataBase:
         create_backup(): Создаёт резервную копию текущих данных.
         load_backup(): Восстанавливает данные из ранее созданной резервной копии.
     """
+    BASE_DIR = Path(__file__).resolve().parent.parent
 
     def _read_data(self, filename: FileData) -> None:
         """Прочитать JSON-файл из директории database/"""

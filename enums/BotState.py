@@ -25,3 +25,14 @@ class BotState(StatesGroup):
     AWAIT_EVENT_END = State()
     AWAIT_EVENT_LOCATION = State()
     AWAIT_EVENT_CHAT = State()
+
+    AWAIT_NEW_EVENT_TITLE = State()
+    AWAIT_NEW_EVENT_DESC = State()
+    AWAIT_NEW_EVENT_DATE_START = State()
+    AWAIT_NEW_EVENT_DATE_END = State()
+    AWAIT_NEW_EVENT_LOCATION = State()
+    AWAIT_NEW_EVENT_CHAT_LINK = State()
+
+    AWAIT_NEW_WORKSHOP_TITLE = State()
+    AWAIT_NEW_WORKSHOP_CAPACITY = State()
+

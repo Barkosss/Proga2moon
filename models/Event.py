@@ -15,10 +15,12 @@ class Event:
     - end: время окончания мероприятия
     - workshop_ids: список ID мастер-классов, принадлежащих этому событию
     - admin_ids: список Telegram ID организаторов/админов
+    - chat_link: ссылка на Telegram беседу для общения участников данного мероприятия
     """
     id: str
     start: datetime
     end: datetime
+    chat_link: str
     workshop_ids: List[str] = field(default_factory=list)
     admin_ids: List[int] = field(default_factory=list)
 
@@ -26,6 +28,7 @@ class Event:
     def create_new(cls,
                    start: datetime,
                    end: datetime,
+                   chat_link: str = "",
                    admin_ids: Optional[List[int]] = None,
                    ) -> "Event":
         return cls(
@@ -33,13 +36,15 @@ class Event:
             workshop_ids=[],
             admin_ids=admin_ids or [],
             start=start,
-            end=end
+            end=end,
+            chat_link=chat_link,
         )
 
     @classmethod
     def from_dict(cls, d: dict) -> "Event":
         return cls(
             id=d["id"],
+            chat_link=d["chat_link"],
             workshop_ids=d.get("workshop_ids", []),
             admin_ids=d.get("admin_ids", []),
             start=datetime.fromisoformat(d["start"]),
@@ -61,6 +66,12 @@ class Event:
 
     def is_admin(self, user_id: int) -> bool:
         return user_id in self.admin_ids
+
+    def update_chat_link(self, chat_link: str) -> None:
+        self.chat_link = chat_link
+
+    def remove_chat_link(self) -> None:
+        self.chat_link = ""
 
     @property
     def duration_hours(self) -> float:

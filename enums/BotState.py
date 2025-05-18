@@ -36,3 +36,6 @@ class BotState(StatesGroup):
     AWAIT_NEW_WORKSHOP_TITLE = State()
     AWAIT_NEW_WORKSHOP_CAPACITY = State()
 
+    AWAIT_ADMIN_ANSWER = State()
+    AWAIT_ADMIN_CONFIRMATION = State()
+

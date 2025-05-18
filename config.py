@@ -1,3 +1,3 @@
 class Config:
-    TOKEN = "7819174763:AAFD2BQBf-MV8PsZtKYZfwyzZf9_vGQoYMw"
-    ID = 7604836846
+    TOKEN = ""
+    ID = 0

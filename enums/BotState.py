@@ -1,9 +1,9 @@
-from telebot.states import StatesGroup, State
+from enum import StrEnum
 
-
-class BotState(StatesGroup):
-    USER = State()
-    ADMIN = State()
-    AWAIT_NAME = State()
-    AWAIT_BIRTHDATE = State()
-    AWAIT_CONTACT = State()
+class BotState(StrEnum):
+    USER = "BotState:USER"
+    ADMIN = "BotState:ADMIN"
+    AWAIT_FIRST_NAME = "BotState:AWAIT_FIRST_NAME"
+    AWAIT_LAST_NAME = "BotState:AWAIT_LAST_NAME"
+    AWAIT_PATRONYMIC = "BotState:AWAIT_PATRONYMIC"
+    AWAIT_BIRTH_DATE = "BotState:AWAIT_BIRTH_DATE"

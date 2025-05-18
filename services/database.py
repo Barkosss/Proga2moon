@@ -19,7 +19,7 @@ class FileData(Enum):
     """
     USERS = "users.json"
     WORKSHOPS = "workshops.json"
-    EVENTS = "event.json"
+    EVENTS = "events.json"
     QUESTIONS = "questions.json"
 
 
@@ -46,13 +46,18 @@ class DataBase:
 
     def _read_data(self, filename: FileData) -> None:
         """Прочитать JSON файл"""
-        with open(f"../database/{filename.value}", "w") as file:
+        path = Path(f"../database/{filename.value}")
+        # если файла ещё нет — создаём пустой
+        if not path.exists():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("{}", encoding="utf-8")
+        with path.open("r", encoding="utf-8") as file:
             self.data: dict = json.load(file)
 
     def _write_data(self, filename: FileData) -> None:
         """Записать новые данные в JSON файл"""
 
-        file_path = Path(f"../database/{filename.value}")
+        file_path = Path(f"database/{filename.value}")
 
         # Если файл не существует
         file_path.parent.mkdir(parents=True, exist_ok=True)

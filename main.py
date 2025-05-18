@@ -2,53 +2,46 @@ import telebot
 from telebot import types
 
 from config import Config
-from handlers.admin import admin_handler
 from handlers.common import common_handler
+from handlers.admin import admin_handler
 from enums.CommandsEnum import Commands
 from enums.BotState import BotState
 
 bot = telebot.TeleBot(Config.TOKEN)
 
+@bot.message_handler(commands=['start'])
+def start(message):
+    # Сбросим роль
+    with bot.retrieve_data(message.from_user.id) as data:
+        data['is_admin'] = False
 
-def register_command():
-    from handlers import common, admin
-
-    common.register_handlers(bot)
-    admin.register_handlers(bot)
-
+    # Переходим к первому шагу опросника
+    bot.set_state(message.from_user.id, BotState.AWAIT_FIRST_NAME, message.chat.id)
+    bot.send_message(
+        message.chat.id,
+        "Добро пожаловать! Пожалуйста, введите ваше *имя*:",
+        parse_mode='Markdown'
+    )
 
 @bot.message_handler(content_types=['text'])
 def handler(message):
     user_id = message.from_user.id
-    current_state = bot.get_state(user_id)
+    state = bot.get_state(user_id) or BotState.USER
 
-    if current_state and current_state.startswith("BotState:AWAIT"):
-        with bot.retrieve_data(message.from_user.id) as data:
-            if bool(data['is_admin']):
-                admin_handler(bot, message, current_state)
-            else:
-                common_handler(bot, message, current_state)
+    # Если мы ещё в опроснике (AWAIT_*)
+    if state.startswith("BotState:AWAIT"):
+        common_handler(bot, message, state)
+        return
 
-    with bot.retrieve_data(message.from_user.id) as data:
-        if bool(data['is_admin']):
-            admin_handler(bot, message, BotState.ADMIN)
-        else:
-            common_handler(bot, message, BotState.USER)
+    # Иначе — обычные команды
+    with bot.retrieve_data(user_id) as data:
+        is_admin = data.get('is_admin', False)
 
-
-@bot.message_handler(commands=['start'])
-def start(message):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-
-    markup.row(types.KeyboardButton(Commands.CommonEnum.MY_SCHEDULE.value),
-               types.KeyboardButton(Commands.CommonEnum.ALL_EVENTS.value),
-               types.KeyboardButton(Commands.CommonEnum.FAQ.value),
-               types.KeyboardButton(Commands.CommonEnum.MY_QR.value))
-
-    bot.send_message(message.chat.id, "Выберите действие:", reply_markup=markup)
-
+    if is_admin:
+        admin_handler(bot, message, BotState.ADMIN)
+    else:
+        common_handler(bot, message, BotState.USER)
 
 if __name__ == "__main__":
-    register_command()
     print("Bot is init")
     bot.polling(none_stop=True)

@@ -23,6 +23,7 @@ class User:
     birth_date: Optional[date] = None
     registered_event_ids: List[int] = field(default_factory=list)
     queued_event_ids: List[int] = field(default_factory=list)
+    admin_event_ids: Optional[int] = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "User":
@@ -41,6 +42,7 @@ class User:
             birth_date=birth_date,
             registered_event_ids=data.get("registered_event_ids", []),
             queued_event_ids=data.get("queued_event_ids", []),
+            admin_event_ids=data.get("admin_event_ids", [])
         )
 
     def to_dict(self) -> dict:

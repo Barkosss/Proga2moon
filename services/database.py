@@ -21,6 +21,7 @@ class FileData(Enum):
     WORKSHOPS = "workshops.json"
     EVENTS = "event.json"
     QUESTIONS = "questions.json"
+    BASE_DIR = Path(__file__).resolve().parent.parent  # → Proga2moon/
 
 
 # TODO: Подумать и добавить работу с таблицей вопросов
@@ -45,20 +46,18 @@ class DataBase:
     """
 
     def _read_data(self, filename: FileData) -> None:
-        """Прочитать JSON файл"""
-        with open(f"../database/{filename.value}", "w") as file:
-            self.data: dict = json.load(file)
+        """Прочитать JSON-файл из директории database/"""
+        file_path = self.BASE_DIR / "database" / filename.value
+        with open(file_path, "r", encoding="utf-8") as file:
+            self.data = json.load(file)
+        print("Загружаю файл:", file_path)
 
     def _write_data(self, filename: FileData) -> None:
-        """Записать новые данные в JSON файл"""
-
-        file_path = Path(f"../database/{filename.value}")
-
-        # Если файл не существует
+        """Записать данные в JSON-файл в директорию database/"""
+        file_path = self.BASE_DIR / "database" / filename.value
         file_path.parent.mkdir(parents=True, exist_ok=True)
-
-        with file_path.open("w") as file:
-            json.dump(self.data, file, indent=4)
+        with open(file_path, "w", encoding="utf-8") as file:
+            json.dump(self.data, file, indent=4, ensure_ascii=False)
 
     def has_user(self, user_id: int) -> Request:
         """
@@ -175,6 +174,24 @@ class DataBase:
 
         event: Event = self.data[event_id]
         return Request(status=Status.OK, value=event.to_dict())
+
+    def get_admin_events(self, user_id: int) -> list[Event]:
+        user_request = self.get_user(user_id)
+
+        if user_request.status != Status.OK:
+            return []
+
+        user: User = user_request.value
+        event_ids = user.admin_event_ids
+
+        events = []
+        for event_id in event_ids:
+            event_request = self.get_event(event_id)
+            if event_request.status == Status.OK:
+                event = Event.from_dict(event_request.value)
+                events.append(event)
+
+        return events
 
     def get_events(self) -> Request:
         """

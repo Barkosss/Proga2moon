@@ -17,6 +17,7 @@ class Workshop:
     - start: время начала
     - end: время окончания
     - registration_required: нужна ли регистрация
+    - speakers: список Telegram ID спикеров на мастер-классе
     - limited_capacity: ограничено ли число мест
     - capacity: число мест (если limited_capacity=True)
     - registered_user_ids: список ID зареганных участников
@@ -33,6 +34,7 @@ class Workshop:
     registration_required: bool
     limited_capacity: bool
     is_notified: bool
+    speakers: List[int]
     capacity: Optional[int] = None
     registered_user_ids: List[int] = field(default_factory=list)
     waiting_user_ids: List[int] = field(default_factory=list)
@@ -47,6 +49,7 @@ class Workshop:
             location=data.get("location", ""),
             start=datetime.fromisoformat(data["start"]),
             end=datetime.fromisoformat(data["end"]),
+            speakers=data.get("speakers", []),
             is_notified=data["is_notified"],
             registration_required=bool(data.get("registration_required", False)),
             limited_capacity=bool(data.get("limited_capacity", False)),

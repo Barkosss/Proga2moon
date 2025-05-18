@@ -15,12 +15,14 @@ class User:
     - birth_date: дата рождения (опционально)
     - registered_event_ids: список ID мероприятий, на которые пользователь зарегистрирован
     - queued_event_ids: список ID мероприятий, на которые пользователь стоит в очереди
+    - admin_event_ids: список ID мероприятий, где человек назначен админом
     """
     id: int
     first_name: str
     last_name: str
     patronymic: Optional[str] = None
     birth_date: Optional[date] = None
+    admin_event_ids: List[str] = field(default_factory=list)
     registered_event_ids: List[int] = field(default_factory=list)
     queued_event_ids: List[int] = field(default_factory=list)
     admin_event_ids: Optional[int] = None
@@ -42,7 +44,7 @@ class User:
             birth_date=birth_date,
             registered_event_ids=data.get("registered_event_ids", []),
             queued_event_ids=data.get("queued_event_ids", []),
-            admin_event_ids=data.get("admin_event_ids", [])
+            admin_event_ids=data.get("admin_event_ids", []),
         )
 
     def to_dict(self) -> dict:

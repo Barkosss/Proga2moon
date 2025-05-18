@@ -21,7 +21,6 @@ class FileData(Enum):
     WORKSHOPS = "workshops.json"
     EVENTS = "event.json"
     QUESTIONS = "questions.json"
-    BASE_DIR = Path(__file__).resolve().parent.parent  # → Proga2moon/
 
 
 # TODO: Подумать и добавить работу с таблицей вопросов
@@ -46,18 +45,23 @@ class DataBase:
     """
 
     def _read_data(self, filename: FileData) -> None:
-        """Прочитать JSON-файл из директории database/"""
-        file_path = self.BASE_DIR / "database" / filename.value
-        with open(file_path, "r", encoding="utf-8") as file:
-            self.data = json.load(file)
-        print("Загружаю файл:", file_path)
+        """Прочитать JSON файл"""
+        try:
+            with open(f"../database/{filename.value}", "r") as file:
+                self.data: dict = json.load(file)
+        except FileNotFoundError:
+            self.data = {}
 
     def _write_data(self, filename: FileData) -> None:
         """Записать данные в JSON-файл в директорию database/"""
         file_path = self.BASE_DIR / "database" / filename.value
         file_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(file_path, "w", encoding="utf-8") as file:
-            json.dump(self.data, file, indent=4, ensure_ascii=False)
+
+        try:
+            with file_path.open("w") as file:
+                json.dump(self.data, file, indent=4)
+        except FileNotFoundError:
+            pass
 
     def has_user(self, user_id: int) -> Request:
         """
@@ -112,7 +116,7 @@ class DataBase:
     def get_workshops(self, event_id: int) -> Request:
         """
         Получить список воркшопов
-
+        
         Args:
             event_id: Идентификатор ивента
         """

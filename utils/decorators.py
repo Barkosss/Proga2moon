@@ -1,35 +1,29 @@
 from functools import wraps
 
 from main import bot
-from config import Config
-
+from models.Request import Request, Status
 from services.database import DataBase as db
 
-def admin_only_for(event_id: int):
-    """Декоратор: проверка регистрации и прав на конкретный воркшоп"""
-    def decorator(func):
-        @wraps(func)
-        def wrapper(message, *args, **kwargs):
-            user_id = message.from_user.id
-            user = db.get_user(user_id)
 
-            if not user:
-                bot.send_message(
-                    message.chat.id,
-                    "🔒 | Вы не зарегистрированы. Сначала введите /registration_workshop"
-                )
-                return None
+def admin_only(func, event_id: int):
+    """Декоратор для админских команд"""
 
-            if not db.workshop_access(user_id, event_id):
-                bot.send_message(
-                    message.chat.id,
-                    f"❌ | У вас нет прав администратора на мероприятие #{event_id}"
-                )
-                return None
+    @wraps(func)
+    def wrapper(message, *args, **kwargs):
+        event_request: Request = db.get_event(event_id)
 
+        if event_request.status != Status.OK:
+            bot.reply_to(message, "❌ | Указанное мероприятие не найдено!")
+            return None
+
+        is_admin: bool = message.from_user.id in event_request.value.admins
+
+        if is_admin:
             return func(message, *args, **kwargs)
-        return wrapper
-    return decorator
+        bot.reply_to(message, "❌ | Требуются права администратора!")
+        return None
+
+    return wrapper
 
 
 def user_only(func):
@@ -38,7 +32,8 @@ def user_only(func):
     @wraps(func)
     # TODO: Сделать функцию проверки зарегистрированных пользователей
     def wrapper(message, *args, **kwargs):
-        if bot.user_exists(message.from_user.id):  # Ваша функция проверки
+        user_request: Request = db.get_user(message.from_user.id)
+        if not (user_request.value is None):
             return func(message, *args, **kwargs)
         bot.reply_to(message, "🔐 | Сначала зарегистрируйтесь")
         return None

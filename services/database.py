@@ -110,9 +110,50 @@ class DataBase:
         except KeyError as err:
             return Request(status=Status.ERROR, message=f"Couldn't get the workshop: {err}", value=False)
 
-    def get_workshops(self, event_id: int) -> Request:
+    def get_workshops(self) -> Request:
         """
         Получить список воркшопов
+        """
+        self._read_data(FileData.WORKSHOPS)
+
+        workshops: list[Workshop] = list[Workshop]()
+
+        try:
+            for workshop_id in self.data.keys():
+                workshop_request: Request = self.get_workshop(workshop_id)
+                if workshop_request.status == Status.OK:
+                    workshops.append(workshop_request.value)
+
+            return Request(status=Status.OK, value=workshops)
+        except KeyError as err:
+            return Request(status=Status.ERROR,
+                           message=f"Couldn't get all the workshops: {err}", value=False)
+
+    def set_workshop_notify(self, workshop_id: str, is_notify: bool) -> Request:
+        """
+        Установить флаг с оповещением
+
+        Args:
+              workshop_id - Идентификатор воркшопа
+              is_notify - Флаг, отправили ли оповещение или нет
+        """
+        self._read_data(FileData.WORKSHOPS)
+
+        if workshop_id in self.data.keys():
+            return Request(status=Status.ERROR, message="")
+
+        workshop_request: Request = self.get_workshop(workshop_id)
+        workshop: Workshop = Workshop.from_dict(workshop_request.value)
+        workshop.is_notified = is_notify
+
+        self.data[workshop_id] = workshop.to_dict()
+
+        self._write_data(FileData.WORKSHOPS)
+        return Request(status=Status.OK, value=workshop)
+
+    def get_event_workshops(self, event_id: int) -> Request:
+        """
+        Получить список воркшопов у определённого ивента
 
         Args:
             event_id: Идентификатор ивента

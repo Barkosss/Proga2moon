@@ -1,11 +1,13 @@
 import uuid
 from datetime import datetime
+from services.questionDB import QuestionDB
 
 from pyexpat.errors import messages
 from telebot.types import Message
 
 from enums.BotState import BotState
 from enums.StatusEnum import Status
+from models.Question import Question
 from utils.decorators import admin_only, admin_only_event_callback
 from services.database import DataBase
 db = DataBase()
@@ -391,3 +393,46 @@ def register_handlers(bot):
 
         bot.send_message(message.chat.id, f"Вы ответили:\n\n<i>{message.text}</i>", parse_mode="HTML",
                          reply_markup=markup)
+
+    @bot.message_handler(func=lambda msg: msg.text == "Часто задаваемые вопросы")
+    def show_faq(message):
+        faq_text = (
+            "📌 <b>FAQ</b>\n\n"
+            "• Как записаться на мастер-класс?\n"
+            "Ответ: Нажмите 'Записаться' в карточке воркшопа.\n\n"
+            "• Можно ли отменить регистрацию?\n"
+            "Ответ: Да, через кнопку 'Отменить регистрацию'.\n\n"
+            "• Где найти расписание?\n"
+            "Ответ: В разделе 'Моё расписание'."
+        )
+        bot.send_message(message.chat.id, faq_text, parse_mode="HTML")
+
+    from uuid import uuid4
+    from datetime import datetime
+
+    @bot.message_handler(func=lambda msg: msg.text == "Связаться с организатором")
+    def ask_question_text(message):
+        bot.set_state(message.from_user.id, BotState.AWAIT_NAME, message.chat.id)
+        bot.send_message(message.chat.id, "✍️ Напиши свой вопрос организатору:")
+
+    @bot.message_handler(state=BotState.AWAIT_NAME)
+    def receive_question(message):
+        user_id = message.from_user.id
+        user = db.get_user(user_id).value
+        event_id = user.registered_event_ids[0] if user.registered_event_ids else None
+
+        if not event_id:
+            bot.send_message(message.chat.id, "❌ Вы не зарегистрированы ни на одно мероприятие.")
+            return
+
+        question = Question(
+            id=str(uuid4()),
+            event_id=event_id,
+            user_id=user_id,
+            text=message.text,
+            created_at=datetime.now()
+        )
+
+        db_questions.add_question(question)
+        bot.send_message(message.chat.id, "✅ Ваш вопрос передан организаторам. Спасибо!")
+        bot.delete_state(user_id, message.chat.id)

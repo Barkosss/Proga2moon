@@ -33,8 +33,8 @@ def notify_user(bot, workshop: Workshop):
             bot.send_message(user_id,
                              f"🎉 Началось мероприятие: {workshop.title}\n"
                              f"📍 Место: {workshop.location}")
-        except:
-            pass
+        except Exception:
+            continue
 
 
 def start_notification_service(bot):

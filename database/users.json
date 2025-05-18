@@ -1,3 +1,29 @@
 {
-
+    "5672003096": {
+        "id": 5672003096,
+        "first_name": "Ilya Boretskikh",
+        "last_name": null,
+        "patronymic": null,
+        "birth_date": null,
+        "registered_event_ids": [],
+        "queued_event_ids": []
+    },
+    "451378255": {
+        "id": 451378255,
+        "first_name": "Konstantin",
+        "last_name": null,
+        "patronymic": null,
+        "birth_date": null,
+        "registered_event_ids": [],
+        "queued_event_ids": []
+    },
+    "746875461": {
+        "id": 746875461,
+        "first_name": "Andrey",
+        "last_name": "Barkos",
+        "patronymic": null,
+        "birth_date": null,
+        "registered_event_ids": [],
+        "queued_event_ids": []
+    }
 }

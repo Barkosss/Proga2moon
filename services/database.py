@@ -26,19 +26,15 @@ class DataBase:
 
     def _read_data(self, filename: FileData) -> None:
         """Прочитать JSON файл"""
-        with open(f"../database/{filename.value}", "w") as file:
+        with open(f"database/{filename.value}", "r", encoding="utf-8") as file:
             self.data: dict = json.load(file)
 
     def _write_data(self, filename: FileData):
         """Записать новые данные в JSON файл"""
-
-        file_path = Path(f"../database/{filename.value}")
-
-        # Если файл не существует
+        file_path = Path(f"database/{filename.value}")
         file_path.parent.mkdir(parents=True, exist_ok=True)
-
-        with file_path.open("w") as file:
-            json.dump(self.data, file, indent=4)
+        with file_path.open("w", encoding="utf-8") as file:
+            json.dump(self.data, file, indent=4, ensure_ascii=False)
 
     def has_user(self, user_id: int) -> bool:
         """
@@ -46,7 +42,7 @@ class DataBase:
 
         """
         self._read_data(FileData.USERS)
-        return self.data[user_id]
+        return str(user_id) in self.data
 
     def get_user(self, user_id: int) -> User:
         """
@@ -65,7 +61,7 @@ class DataBase:
         Args:
             user: Объект пользователя для добавления
         """
-        self.data[user.id] = user.to_dict()
+        self.data[str(user.id)] = user.to_dict()
         self._write_data(FileData.USERS)
 
     def get_workshop(self, workshop_id: int) -> Workshop:

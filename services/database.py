@@ -45,8 +45,11 @@ class DataBase:
 
     def _read_data(self, filename: FileData) -> None:
         """Прочитать JSON файл"""
-        with open(f"../database/{filename.value}", "r") as file:
-            self.data: dict = json.load(file)
+        try:
+            with open(f"../database/{filename.value}", "r") as file:
+                self.data: dict = json.load(file)
+        except FileNotFoundError:
+            self.data = {}
 
     def _write_data(self, filename: FileData) -> None:
         """Записать новые данные в JSON файл"""
@@ -56,8 +59,11 @@ class DataBase:
         # Если файл не существует
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with file_path.open("w") as file:
-            json.dump(self.data, file, indent=4)
+        try:
+            with file_path.open("w") as file:
+                json.dump(self.data, file, indent=4)
+        except FileNotFoundError:
+            pass
 
     def has_user(self, user_id: int) -> Request:
         """

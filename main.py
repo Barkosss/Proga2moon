@@ -76,8 +76,8 @@ def send_workshop_slider(chat_id, user_id, workshops, idx, message_id=None):
     btn_prev = types.InlineKeyboardButton("⬅️ Предыдущее", callback_data="workshop_prev")
     btn_next = types.InlineKeyboardButton("Следующее ➡️", callback_data="workshop_next")
     if is_registered:
-        btn_reg = types.InlineKeyboardButton("Отменить регистрацию", callback_data="workshop_unregister")
-        btn_exit = types.InlineKeyboardButton("Выйти из режима ожидания", callback_data="workshop_exit")
+        btn_reg = types.InlineKeyboardButton("❌ Отменить регистрацию", callback_data="workshop_unregister")
+        btn_exit = types.InlineKeyboardButton("↖️ Выйти в главное меню", callback_data="workshop_exit")
         markup.add(btn_prev, btn_next)
         markup.add(btn_reg)
         markup.add(btn_exit)

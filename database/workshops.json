@@ -1,38 +1,40 @@
 {
-	"1": {
-		"id": 1,
-		"title": "Тестовый воркшоп",
-		"description": "Описание тестового мероприятия для проверки слайдера.",
-		"start": "2025-05-20T10:00:00",
-		"end": "2025-05-20T12:00:00",
-		"registration_required": true,
-		"limited_capacity": false,
-		"capacity": null,
-		"registered_user_ids": [],
-		"waiting_user_ids": []
-	},
-	"2": {
-		"id": 2,
-		"title": "Python для начинающих",
-		"description": "Изучаем основы Python и пишем первые программы.",
-		"start": "2025-05-21T14:00:00",
-		"end": "2025-05-21T16:00:00",
-		"registration_required": true,
-		"limited_capacity": true,
-		"capacity": 20,
-		"registered_user_ids": [],
-		"waiting_user_ids": []
-	},
-	"3": {
-		"id": 3,
-		"title": "Data Science Workshop",
-		"description": "Погружаемся в анализ данных и машинное обучение.",
-		"start": "2025-05-22T11:00:00",
-		"end": "2025-05-22T13:30:00",
-		"registration_required": true,
-		"limited_capacity": false,
-		"capacity": null,
-		"registered_user_ids": [],
-		"waiting_user_ids": []
-	}
+    "1": {
+        "id": 1,
+        "title": "Тестовый воркшоп",
+        "description": "Описание тестового мероприятия для проверки слайдера.",
+        "start": "2025-05-20T10:00:00",
+        "end": "2025-05-20T12:00:00",
+        "registration_required": true,
+        "limited_capacity": false,
+        "capacity": null,
+        "registered_user_ids": [],
+        "waiting_user_ids": []
+    },
+    "2": {
+        "id": 2,
+        "title": "Python для начинающих",
+        "description": "Изучаем основы Python и пишем первые программы.",
+        "start": "2025-05-21T14:00:00",
+        "end": "2025-05-21T16:00:00",
+        "registration_required": true,
+        "limited_capacity": true,
+        "capacity": 20,
+        "registered_user_ids": [],
+        "waiting_user_ids": [
+            "5672003096"
+        ]
+    },
+    "3": {
+        "id": 3,
+        "title": "Data Science Workshop",
+        "description": "Погружаемся в анализ данных и машинное обучение.",
+        "start": "2025-05-22T11:00:00",
+        "end": "2025-05-22T13:30:00",
+        "registration_required": true,
+        "limited_capacity": false,
+        "capacity": null,
+        "registered_user_ids": [],
+        "waiting_user_ids": []
+    }
 }

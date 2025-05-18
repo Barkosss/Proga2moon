@@ -25,6 +25,7 @@ class User:
     admin_event_ids: List[str] = field(default_factory=list)
     registered_event_ids: List[int] = field(default_factory=list)
     queued_event_ids: List[int] = field(default_factory=list)
+    admin_event_ids: Optional[int] = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "User":

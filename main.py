@@ -6,7 +6,7 @@ import telebot
 from telebot import types
 
 from config import Config
-from services.database import DataBase
+from services.database import DataBase, FileData
 from models.User import User
 from enums.StatusEnum import Status
 
@@ -50,40 +50,28 @@ def start(message):
 
 
 # --- Слайдер мероприятий ---
-from services.database import DataBase
+from services.database import DataBase, FileData
 from models.Workshop import Workshop
 
-# Состояние слайдера для каждого пользователя (user_id: index)
+# Состояние слайдера для каждого пользователя (user_id: {index, message_id})
 user_slider_state = {}
 
 
 def get_workshops_list():
     db = DataBase()
-    db._read_data(db.FileData.WORKSHOPS)
+    db._read_data(FileData.WORKSHOPS)
     workshops = []
     for w in db.data.values():
         workshops.append(Workshop.from_dict(w))
     return workshops
 
 
-@bot.message_handler(func=lambda message: message.text == "Все мероприятия")
-def handle_all_workshops(message):
-    workshops = get_workshops_list()
-    if not workshops:
-        bot.send_message(message.chat.id, "Нет доступных мероприятий.")
-        return
-    user_slider_state[message.from_user.id] = 0
-    send_workshop_slider(message.chat.id, message.from_user.id, workshops, 0)
-
-
-def send_workshop_slider(chat_id, user_id, workshops, idx):
+def send_workshop_slider(chat_id, user_id, workshops, idx, message_id=None):
     workshop = workshops[idx]
     text = f"<b>{workshop.title}</b>\n\n{workshop.description}\n\nДата: {workshop.start.strftime('%d.%m.%Y %H:%M')} — {workshop.end.strftime('%d.%m.%Y %H:%M')}"
-    # Проверяем регистрацию
     db = DataBase()
-    db._read_data(db.FileData.WORKSHOPS)
+    db._read_data(FileData.WORKSHOPS)
     is_registered = str(user_id) in workshop.waiting_user_ids
-    # Кнопки
     markup = types.InlineKeyboardMarkup(row_width=2)
     btn_prev = types.InlineKeyboardButton("⬅️ Предыдущее", callback_data="workshop_prev")
     btn_next = types.InlineKeyboardButton("Следующее ➡️", callback_data="workshop_next")
@@ -97,37 +85,52 @@ def send_workshop_slider(chat_id, user_id, workshops, idx):
         btn_reg = types.InlineKeyboardButton("Зарегистрироваться", callback_data="workshop_register")
         markup.add(btn_prev, btn_next)
         markup.add(btn_reg)
-    bot.send_message(chat_id, text, reply_markup=markup, parse_mode='HTML')
+    if message_id:
+        try:
+            bot.edit_message_text(text, chat_id, message_id, reply_markup=markup, parse_mode='HTML')
+        except Exception:
+            msg = bot.send_message(chat_id, text, reply_markup=markup, parse_mode='HTML')
+            user_slider_state[user_id] = {'idx': idx, 'message_id': msg.message_id}
+            return
+    else:
+        msg = bot.send_message(chat_id, text, reply_markup=markup, parse_mode='HTML')
+        user_slider_state[user_id] = {'idx': idx, 'message_id': msg.message_id}
+        return
+    user_slider_state[user_id]['idx'] = idx
+
+
+@bot.message_handler(func=lambda message: message.text == "Все мероприятия")
+def handle_all_workshops(message):
+    workshops = get_workshops_list()
+    if not workshops:
+        bot.send_message(message.chat.id, "Нет доступных мероприятий.")
+        return
+    send_workshop_slider(message.chat.id, message.from_user.id, workshops, 0)
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("workshop_"))
 def handle_workshop_slider(call):
     user_id = call.from_user.id
     workshops = get_workshops_list()
-    idx = user_slider_state.get(user_id, 0)
+    state = user_slider_state.get(user_id, {'idx': 0, 'message_id': call.message.message_id})
+    idx = state.get('idx', 0)
+    message_id = state.get('message_id', call.message.message_id)
     if call.data == "workshop_next":
         idx = (idx + 1) % len(workshops)
-        user_slider_state[user_id] = idx
-        bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
-        send_workshop_slider(call.message.chat.id, user_id, workshops, idx)
+        send_workshop_slider(call.message.chat.id, user_id, workshops, idx, message_id)
     elif call.data == "workshop_prev":
         idx = (idx - 1) % len(workshops)
-        user_slider_state[user_id] = idx
-        bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
-        send_workshop_slider(call.message.chat.id, user_id, workshops, idx)
+        send_workshop_slider(call.message.chat.id, user_id, workshops, idx, message_id)
     elif call.data == "workshop_register":
-        # Добавить пользователя в лист ожидания
         db = DataBase()
-        db._read_data(db.FileData.WORKSHOPS)
+        db._read_data(FileData.WORKSHOPS)
         workshop = workshops[idx]
         if str(user_id) not in workshop.waiting_user_ids:
             workshop.waiting_user_ids.append(str(user_id))
             db.data[str(workshop.id)] = workshop.to_dict()
-            db._write_data(db.FileData.WORKSHOPS)
-        bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
-        send_workshop_slider(call.message.chat.id, user_id, workshops, idx)
+            db._write_data(FileData.WORKSHOPS)
+        send_workshop_slider(call.message.chat.id, user_id, workshops, idx, message_id)
     elif call.data == "workshop_unregister":
-        # Подтверждение отмены
         markup = types.InlineKeyboardMarkup()
         markup.add(
             types.InlineKeyboardButton("Да", callback_data="workshop_confirm_unreg"),
@@ -139,16 +142,16 @@ def handle_workshop_slider(call):
         bot.send_message(call.message.chat.id, "Вы вышли из режима просмотра мероприятий.")
     elif call.data == "workshop_confirm_unreg":
         db = DataBase()
-        db._read_data(db.FileData.WORKSHOPS)
+        db._read_data(FileData.WORKSHOPS)
         workshop = workshops[idx]
         if str(user_id) in workshop.waiting_user_ids:
             workshop.waiting_user_ids.remove(str(user_id))
             db.data[str(workshop.id)] = workshop.to_dict()
-            db._write_data(db.FileData.WORKSHOPS)
+            db._write_data(FileData.WORKSHOPS)
         bot.send_message(call.message.chat.id, "Регистрация отменена.")
-        send_workshop_slider(call.message.chat.id, user_id, workshops, idx)
+        send_workshop_slider(call.message.chat.id, user_id, workshops, idx, message_id)
     elif call.data == "workshop_cancel_unreg":
-        send_workshop_slider(call.message.chat.id, user_id, workshops, idx)
+        send_workshop_slider(call.message.chat.id, user_id, workshops, idx, message_id)
 
 
 if __name__ == "__main__":

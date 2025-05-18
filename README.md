@@ -27,7 +27,9 @@ Before launching, you need to get a Telegram Bot Token:
 --- 
 
 1. Clone the repository:
-   Repository is private, you have the archive file
+    ```bash
+    git clone https://github.com/Barkosss/Proga2moon.git
+    ```
 
 2. Installing Python:
 

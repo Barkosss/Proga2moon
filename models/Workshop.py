@@ -57,3 +57,12 @@ class Workshop:
         d["start"] = self.start.isoformat()
         d["end"] = self.end.isoformat()
         return d
+
+    def add_waiting_user_id(self, user_id: int) -> None:
+        self.waiting_user_ids.append(user_id)
+
+    def add_registration(self, user_id: int) -> None:
+        if self.limited_capacity and self.capacity - len(self.registered_user_ids):
+            self.registered_user_ids.append(user_id)
+        else:
+            self.add_waiting_user_id(user_id)

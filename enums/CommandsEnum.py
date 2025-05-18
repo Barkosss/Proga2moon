@@ -1,11 +1,12 @@
 from enum import StrEnum
 
+
 class Commands:
     """
     Перечисление наименований встроенных и неизменяемых кнопок бота
-
     Используется для строгой типизации текстовых команд.
     """
+
     class CommonEnum(StrEnum):
         MY_SCHEDULE = "Моё расписание"
         ALL_EVENTS = "Все мероприятия"
@@ -17,6 +18,7 @@ class Commands:
         QUIT_AWAIT_MODE = "Выйти из режима ожидания"
         YES = "Да"
         NO = "Нет"
+        SELECT_EVENT = "Выбрать мероприятие"
 
     class AdminEnum(StrEnum):
         ANSWER = "Ответить"
